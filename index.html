@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Painel de Lojas</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+body{
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg,#1f1f1f,#2b2b2b);
+  padding:20px;
+  color:#fff;
+}
+
+/* TOPO */
+.topo{
+  background:#2b2b2b;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:20px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
+
+select{
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  outline:none;
+  background:#444;
+  color:#fff;
+  font-weight:bold;
+}
+
+/* CARDS LOJA */
+.loja{
+  background:#2a2a2a;
+  padding:15px;
+  margin-bottom:20px;
+  border-radius:15px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.4);
+  transition:0.3s;
+}
+
+.loja:hover{
+  transform:translateY(-3px);
+}
+
+/* TITULO */
+h3{
+  margin:5px 0 10px;
+  color:#ff3b3b;
+}
+
+/* INPUT FILE */
+input[type="file"]{
+  background:#444;
+  padding:8px;
+  border-radius:8px;
+  color:#fff;
+  border:none;
+}
+
+/* TABELA */
+table{
+  width:100%;
+  border-collapse: collapse;
+  margin-top:15px;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+th{
+  background:#ff3b3b;
+  color:#fff;
+  padding:10px;
+  text-align:left;
+}
+
+td{
+  padding:8px;
+  background:#333;
+  border-bottom:1px solid #444;
+}
+
+tr:hover td{
+  background:#3f3f3f;
+}
+
+/* RESUMO */
+.resumo{
+  margin-top:10px;
+  background:#1f1f1f;
+  padding:10px;
+  border-radius:10px;
+  font-weight:bold;
+  color:#ccc;
+}
+
+/* FILTROS */
+#filtroGrupoVendas,
+#filtroGrupoEstoque{
+  margin-top:10px;
+  margin-right:10px;
+}
+
+/* DESTAQUES DINÂMICOS (já usados no JS) */
+td[style*="background:red"]{
+  background:#ff3b3b !important;
+}
+
+td[style*="background:green"]{
+  background:#00c853 !important;
+}
+/* =========================
+   RESPONSIVO MOBILE
+========================= */
+
+@media (max-width: 768px){
+
+  body{
+    padding:10px;
+  }
+
+  .topo{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .loja{
+    padding:12px;
+  }
+
+  h3{
+    font-size:18px;
+  }
+
+  select, input[type="file"]{
+    width:100%;
+    font-size:14px;
+  }
+
+  /* TABELA RESPONSIVA */
+  table{
+    display:block;
+    overflow-x:auto;
+    white-space:nowrap;
+    border-radius:10px;
+  }
+
+  th, td{
+    font-size:12px;
+    padding:6px;
+  }
+
+  /* MELHORAR ESPAÇO DOS FILTROS */
+  #filtroGrupoVendas,
+  #filtroGrupoEstoque{
+    width:100%;
+    margin-top:8px;
+  }
+
+  .resumo{
+    font-size:13px;
+    text-align:center;
+  }
+}
+
+/* =========================
+   EXTRA (CELULAR PEQUENO)
+========================= */
+
+@media (max-width: 480px){
+
+  h3{
+    font-size:16px;
+  }
+
+  th, td{
+    font-size:11px;
+  }
+
+  .resumo{
+    font-size:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="topo">
+  <label>Filtrar loja:</label>
+  <select onchange="filtrarLojas(this.value)">      
+    <option value="todas">Todas</option>
+    <option value="loja1">Agulhas</option>
+    <option value="loja2">Pedra</option>
+    <option value="loja3">Vargem</option>
+  </select>
+</div>
+<div class="loja" id="loja1">
+  <h3>🏪 Agulhas</h3>
+<label>Produtos A.B.C:</label>
+<br>
+<br>
+<input type="file" onchange="carregarVendas(event)">
+<br>
+<br>
+<label>Posição do Estoque:</label>
+<br>
+<input type="file" onchange="carregarEstoque(event)">
+
+<select id="filtroGrupoVendas" onchange="filtrarVendas()"></select>
+
+<select id="filtroGrupoEstoque" onchange="filtrarEstoque()"></select>
+
+<br><br>
+
+<div id="tabela"></div>
+
+  <div class="resumo">
+    Soma: <span id="soma_loja1">0</span> |
+    Média: <span id="media_loja1">0</span>
+  </div>
+
+  <div id="tabela_loja1"></div>
+</div>
+
+<!-- LOJA 2 -->
+<div class="loja" id="loja2">
+  <h3>🏪 Loja 2</h3>
+  <input type="file" onchange="carregarArquivo(event,'loja2')">
+  <div class="resumo">
+    Soma: <span id="soma_loja2">0</span> |
+    Média: <span id="media_loja2">0</span>
+  </div>
+  <div id="tabela_loja2"></div>
+</div>
+
+<!-- LOJA 3 -->
+<div class="loja" id="loja3">
+  <h3>🏪 Loja 3</h3>
+  <input type="file" onchange="carregarArquivo(event,'loja3')">
+  <div class="resumo">
+    Soma: <span id="soma_loja3">0</span> |
+    Média: <span id="media_loja3">0</span>
+  </div>
+  <div id="tabela_loja3"></div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
