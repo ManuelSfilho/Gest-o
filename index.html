@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Painel de Lojas</title>
+
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="shortcut icon" href="logo.png">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+body{
+  background:#a7a5a5;
+  color:#f1f1f1;
+  font-family:Arial;
+  padding:20px;
+}
+
+/* TÍTULO 
+h1{
+  text-align:center;
+  margin-bottom:25px;
+  color:#f1f1f1;
+  margin-left: 50px;
+  font-weight: 900;
+}*/
+.titulo{
+  text-align:center;
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  margin-bottom:20px;
+  font-weight: 900;
+}
+
+.logo{
+  width:110px;
+  height:110px;
+  object-fit:contain;
+  border-radius:16px ;
+}
+
+/* TOPO */
+.topo{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+
+/* CARDS */
+.card{
+  background:#3a3a3a;
+  padding:15px;
+  border-radius:10px;
+  border:2px solid #ff5252;
+  box-shadow:0 0 10px rgba(255,82,82,0.2);
+  transition:0.3s;
+  margin-left: 40px;
+  text-align:center;
+}
+
+.cardestoque{
+  background:#3a3a3a;
+  padding:15px;
+  border-radius:10px;
+  border:2px solid #ff5252;
+  box-shadow:0 0 10px rgba(255,82,82,0.2);
+  transition:0.3s;
+  margin-left: 90px;
+  text-align:center;
+}
+
+.cardestoque:hover{
+  box-shadow:0 0 15px rgba(255,82,82,0.5);
+  transform:scale(1.02);
+}
+.card:hover{
+  box-shadow:0 0 15px rgba(255,82,82,0.5);
+  transform:scale(1.02);
+}
+
+/* INPUTS */
+input, select{
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #666;
+  background:#666464;
+  color:#fff;
+  outline:none;
+}
+
+input:focus, select:focus{
+  border:1px solid #ff5252;
+}
+
+/* CONTAINER */
+.container{
+  display:flex;
+  gap:20px;
+}
+
+/* TABELAS */
+.tabela-box{
+  flex:1;
+  background:#3a3a3a;
+  padding:15px;
+  border-radius:10px;
+  border:2px solid #ff5252;
+  box-shadow:0 0 10px rgba(255,82,82,0.1);
+  overflow:auto;
+}
+
+/* TITULO DAS TABELAS */
+.tabela-box h3{
+  margin-bottom:10px;
+  color:#fff;
+  text-align:center;
+
+}
+
+/* SELECT FILTRO */
+.tabela-box select{
+  margin-bottom:10px;
+}
+
+/* BUSCA */
+.tabela-box input{
+  width:95%;
+  margin-top:10px;
+  margin-bottom:10px;
+}
+
+/* TABELA */
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+/* CABEÇALHO */
+th{
+  background:#ff5252;
+  color:#fff;
+  padding:10px;
+  text-align:left;
+}
+
+/* LINHAS */
+td{
+  padding:8px;
+  border-bottom:1px solid #555;
+  font-size:14px;
+  font-weight: bold;
+}
+
+/* HOVER LINHA */
+tr:hover{
+  background:#505050;
+}
+
+/* ESTOQUE BAIXO */
+.baixo{
+  background:#ff5252;
+  color:#fff;
+  font-weight:bold;
+}
+
+/* PEDIDO */
+.alto{
+  background:#4caf50;
+  color:#fff;
+  font-weight:bold;
+}
+
+/* RESPONSIVO */
+@media(max-width:900px){
+  .container{
+    flex-direction:column;
+  }
+}
+
+/*td, th{
+  word-break: break-word;
+  white-space: normal;
+  font-size:12px;
+}*/
+
+::placeholder{
+  color:#fff;
+  opacity:8;
+}
+
+::-webkit-input-placeholder{
+  color:#fff;
+}
+
+:-ms-input-placeholder{
+  color:#fff;
+}
+
+::-ms-input-placeholder{
+  color:#fff;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- <h1>📊 Painel de Lojas</h1> -->
+
+<div class="topo">
+
+  <!-- FILTRO LOJA -->
+  <div class="card">
+    <b>Selecionar Loja</b><br><br>
+    <select id="lojaSelecionada" onchange="renderTudo()">
+      <option>Agulhas Negras</option>
+      <option>Pedra</option>
+      <option>Vargem Grande</option>
+      <option>Ilha de Guaratiba</option>
+    </select>
+  </div>
+
+  <!-- ABC -->
+  <div class="card">
+    <b>Produtos ABC</b><br><br>
+    <input type="file" onchange="carregarABC(event)">
+  </div>
+
+  <h1 class="titulo">
+  <img src="logo.png" class="logo">Painel de Lojas
+</h1>
+  <!-- ESTOQUE -->
+  <div class="cardestoque">
+    <b>Posição do Estoque</b><br><br>
+    <input type="file" onchange="carregarEstoque(event)">
+  </div>
+
+</div>
+
+
+<div class="container">
+
+  <div class="tabela-box">
+    <h3>Produtos ABC</h3>
+    <select id="filtroGrupoABC" onchange="renderABC()"></select>
+    <input type="text" id="buscaABC" placeholder="Buscar Produto..." onkeyup="renderABC()">
+    <div id="tabelaABC"></div>
+  </div>
+  
+  <div class="tabela-box">
+    <h3>Posição do Estoque</h3>
+    <select id="filtroGrupoEstoque" onchange="renderEstoque()"></select>
+    <input type="text" id="buscaEstoque" placeholder="Buscar Produto..." onkeyup="renderEstoque()">
+    <div id="tabelaEstoque"></div>
+  </div>
+
+</div>
+
+<div class="tabela-box">
+  <h3>Transferências Sugeridas</h3>
+  <div id="transferencias"></div>
+</div>
+
+<script>
+
+let banco = {
+  "Agulhas Negras": {abc: [], estoque: []},
+  "Pedra": {abc: [], estoque: []},
+  "Vargem Grande": {abc: [], estoque: []},
+  "Ilha de Guaratiba": {abc: [], estoque: []}
+};
+
+// ================= LOJA =================
+function lojaAtual(){
+  return document.getElementById("lojaSelecionada").value;
+}
+
+// ================= AJUDA =================
+function acharColuna(obj, nomes){
+  return Object.keys(obj).find(k =>
+    nomes.some(n => k.toLowerCase().includes(n))
+  );
+}
+
+// ================= CARREGAR ABC =================
+function carregarABC(e){
+
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+
+    const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+    let dados = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+
+    if(!dados.length) return;
+
+    const exemplo = dados[0];
+
+    const colGrupo = acharColuna(exemplo, ["grupo"]);
+    const colDesc = acharColuna(exemplo, ["descr", "produto", "nome"]);
+    const colEstoque = acharColuna(exemplo, ["estoque"]);
+    const colVendido = acharColuna(exemplo, ["vend", "qtd"]);
+
+    dados = dados.map(l => ({
+      grupo: l[colGrupo],
+      produto: l[colDesc],
+      estoque: Number(l[colEstoque]) || 0,
+      vendidos: Number(l[colVendido]) || 0,
+      raw: l
+    }));
+
+    banco[lojaAtual()].abc = dados;
+
+    preencherFiltroGrupoABC(dados);
+    renderTudo(); // 🔥 corrigido
+  };
+
+  reader.readAsArrayBuffer(e.target.files[0]);
+  e.target.value = "";
+}
+
+// ================= CARREGAR ESTOQUE =================
+function carregarEstoque(e){
+
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+
+    const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+    let dados = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+
+    if(!dados.length) return;
+
+    const exemplo = dados[0];
+
+    const colGrupo = acharColuna(exemplo, ["grupo"]);
+    const colNome = acharColuna(exemplo, ["nome", "descr"]);
+    const colEstoque = acharColuna(exemplo, ["estoque"]);
+
+    dados = dados.map(l => ({
+      grupo: l[colGrupo],
+      nome: l[colNome],
+      estoque: Number(l[colEstoque]) || 0,
+      raw: l
+    }));
+
+    banco[lojaAtual()].estoque = dados;
+
+    preencherFiltroGrupoEstoque(dados);
+    renderTudo(); // 🔥 corrigido
+  };
+
+  reader.readAsArrayBuffer(e.target.files[0]);
+  e.target.value = "";
+}
+
+// ================= FILTROS =================
+function preencherFiltroGrupoABC(dados){
+  const select = document.getElementById("filtroGrupoABC");
+  const grupos = [...new Set(dados.map(d => d.grupo))];
+
+  select.innerHTML = `<option value="">Todos</option>`;
+  grupos.forEach(g => select.innerHTML += `<option>${g}</option>`);
+}
+
+function preencherFiltroGrupoEstoque(dados){
+  const select = document.getElementById("filtroGrupoEstoque");
+  const grupos = [...new Set(dados.map(d => d.grupo))];
+
+  select.innerHTML = `<option value="">Todos</option>`;
+  grupos.forEach(g => select.innerHTML += `<option>${g}</option>`);
+}
+
+// ================= RENDER ABC =================
+function renderABC(){
+
+  let dados = banco[lojaAtual()].abc;
+  let busca = document.getElementById("buscaABC").value.toLowerCase();
+  let filtroGrupo = document.getElementById("filtroGrupoABC").value;
+
+  if(!dados.length){
+    document.getElementById("tabelaABC").innerHTML = "Sem dados";
+    return;
+  }
+
+  let html = "<table><tr>";
+  html += "<th>Grupo</th><th>Produto</th><th>Estoque</th><th>Vendidos</th><th>Média</th><th>Pedido</th></tr>";
+
+  dados.forEach(d => {
+
+    if(filtroGrupo && d.grupo != filtroGrupo) return;
+
+    if(busca){
+      const texto = Object.values(d.raw).join(" ").toLowerCase();
+      if(!texto.includes(busca)) return;
+    }
+
+    let media = d.vendidos / 30;
+    let pedido = Math.max((media * 30) - d.estoque, 0);
+
+    html += `<tr>
+      <td>${d.grupo || "-"}</td>
+      <td>${d.produto || "-"}</td>
+      <td class="${d.estoque<=3?'baixo':''}">${d.estoque}</td>
+      <td>${d.vendidos}</td>
+      <td>${media.toFixed(2)}</td>
+      <td class="${pedido>0?'alto':''}">${Math.ceil(pedido)}</td>
+    </tr>`;
+  });
+
+  html += "</table>";
+  document.getElementById("tabelaABC").innerHTML = html;
+}
+
+// ================= RENDER ESTOQUE =================
+function renderEstoque(){
+
+  let dados = banco[lojaAtual()].estoque;
+  let busca = document.getElementById("buscaEstoque").value.toLowerCase();
+  let filtroGrupo = document.getElementById("filtroGrupoEstoque").value;
+
+  if(!dados.length){
+    document.getElementById("tabelaEstoque").innerHTML = "Sem dados";
+    return;
+  }
+
+  let html = "<table><tr>";
+  html += "<th>Grupo</th><th>Nome</th><th>Estoque</th></tr>";
+
+  dados.forEach(d => {
+
+    if(filtroGrupo && d.grupo != filtroGrupo) return;
+
+    if(busca){
+      const texto = Object.values(d.raw).join(" ").toLowerCase();
+      if(!texto.includes(busca)) return;
+    }
+
+    html += `<tr>
+      <td>${d.grupo || "-"}</td>
+      <td>${d.nome || "-"}</td>
+      <td class="${d.estoque<=2?'baixo':''}">${d.estoque}</td>
+    </tr>`;
+  });
+
+  html += "</table>";
+  document.getElementById("tabelaEstoque").innerHTML = html;
+}
+
+// ================= TRANSFERÊNCIAS =================
+function sugerirTransferencias(){
+
+  let lojas = Object.keys(banco);
+  let sugestoes = [];
+  let produtosMap = {};
+
+  lojas.forEach(loja => {
+    banco[loja].abc.forEach(p => {
+
+      let chave = (p.produto || "").toLowerCase().trim();
+
+      let media = p.vendidos / 30;
+      if(media <= 0) return;
+
+      if(!produtosMap[chave]) produtosMap[chave] = [];
+
+      produtosMap[chave].push({
+        loja,
+        estoque: p.estoque,
+        media
+      });
+
+    });
+  });
+
+  Object.entries(produtosMap).forEach(([produto, dados]) => {
+
+    let precisa = [];
+    let sobra = [];
+
+    dados.forEach(d => {
+
+      let necessidade = (d.media * 5) - d.estoque;
+      let excesso = d.estoque - (d.media * 10);
+
+      if(necessidade > 0){
+        precisa.push({...d, qtd: Math.ceil(necessidade)});
+      }
+
+      if(excesso > 0){
+        sobra.push({...d, qtd: Math.floor(excesso)});
+      }
+
+    });
+
+    precisa.forEach(p => {
+      sobra.forEach(s => {
+
+        let qtd = Math.min(p.qtd, s.qtd);
+
+        if(qtd > 0){
+          sugestoes.push({
+            produto,
+            de: s.loja,
+            para: p.loja,
+            qtd
+          });
+
+          p.qtd -= qtd;
+          s.qtd -= qtd;
+        }
+
+      });
+    });
+
+  });
+
+  return sugestoes;
+}
+
+// ================= RENDER TRANSFERÊNCIAS =================
+function renderTransferencias(){
+
+  let lista = sugerirTransferencias();
+
+  if(!lista.length){
+    return "Sem sugestões";
+  }
+
+  let html = "<table><tr><th>Produto</th><th>De</th><th>Para</th><th>Qtd</th></tr>";
+
+  lista.forEach(t => {
+    html += `<tr>
+      <td>${t.produto}</td>
+      <td>${t.de}</td>
+      <td>${t.para}</td>
+      <td>${t.qtd}</td>
+    </tr>`;
+  });
+
+  html += "</table>";
+
+  return html;
+}
+
+// ================= RENDER GLOBAL =================
+function renderTudo(){
+  renderABC();
+  renderEstoque();
+  document.getElementById("transferencias").innerHTML = renderTransferencias();
+}
+
+</script>
+
+</body>
+</html>
